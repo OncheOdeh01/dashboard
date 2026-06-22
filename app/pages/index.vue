@@ -1,12 +1,17 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center">
-    
-    <NuxtLink
-      to="/login"
-      class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl text-xl font-bold transition"
-    >
-      Go To Login
-    </NuxtLink>
+  
+<Navbar/>
 
-  </div>
+<div class="min-h-screen bg-gray-100 flex items-center justify-center">
+  <div class="bg-white p-8 rounded-lg shadow-lg">
+   <h1 class="text-3x1 font-bold">
+    Welcome to the Dashboard
+  </h1>
+
+<p class="mt-4 text-gray-600 font-bold">
+  Built With Nuxt and Tailwind CSS
+</p>
+ </div>
+</div>
+
 </template>

@@ -1,102 +1,128 @@
+<!-- pages/dashboard.vue -->
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { Pie } from 'vue-chartjs'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 
-const users = ref([])
+ChartJS.register(ArcElement, Tooltip, Legend)
 
-onMounted(() => {
-  const savedUsers = JSON.parse(localStorage.getItem('users'))
-  if (savedUsers) {
-    users.value = savedUsers
-  }
-})
+const userStore = useUserStore()
 
-const deleteUser = (index) => {
-  users.value.splice(index, 1)
-  localStorage.setItem('users', JSON.stringify(users.value))
+if (userStore.users.length === 0) {
+  await userStore.fetchUsers()
 }
 
-const activeUsers = computed(() =>
-  users.value.filter(u => u.status === 'online').length
-)
+const chartData = computed(() => ({
+  labels: ['Active', 'Inactive'],
+  datasets: [
+    {
+      data: [userStore.activeUsers, userStore.inactiveUsers],
+      backgroundColor: ['#22c55e', '#ef4444'],
+      hoverBackgroundColor: ['#16a34a', '#dc2626']
+    }
+  ]
+}))
+
+const chartOptions = {
+  responsive: true,
+  plugins: {
+    legend: { position: 'bottom' }
+  }
+}
 </script>
 
 <template>
-  <div class="min-h-screen bg-zinc-950 text-white p-10">
+  <div>
+    <Navbar />
 
-    <h1 class="text-4xl font-bold mb-10">
-      Dashboard
-    </h1>
+    <div class="flex justify-end mt-6 mr-4">
+  <input
+    v-model="search"
+    type="text"
+    placeholder="Search users..."
+    class="border rounded-lg px-4 py-2 w-64 shadow"
+  >
+</div>
 
-    <!-- Dashboard Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    <div class="p-8">
+      <h1 class="text-3xl font-bold mb-6">Dashboard</h1>
 
-      <div class="bg-zinc-900 p-6 rounded-2xl">
-        <h2 class="text-zinc-400 mb-2">Total Users</h2>
-        <p class="text-4xl font-bold text-blue-400">
-          {{ users.length }}
-        </p>
+      <div v-if="userStore.pending">Loading...</div>
+      <div v-else-if="userStore.error">{{ userStore.error }}</div>
+
+      <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Stat cards -->
+        <div class="bg-yellow-400 p-4 rounded shadow text-center">
+          <p class="text-sm text-black">Total Users</p>
+          <p class="text-2xl font-bold">{{ userStore.totalUsers }}</p>
+        </div>
+        <div class="bg-green-400 p-4 rounded shadow text-center">
+          <p class="text-sm text-black">Active</p>
+          <p class="text-2xl font-bold text-green-600">{{ userStore.activeUsers }}</p>
+        </div>
+        <div class="bg-red-400 p-4 rounded shadow text-center">
+          <p class="text-sm text-black">Inactive</p>
+          <p class="text-2xl font-bold text-red-600">{{ userStore.inactiveUsers }}</p>
+        </div>
       </div>
 
-      <div class="bg-zinc-900 p-6 rounded-2xl">
-        <h2 class="text-zinc-400 mb-2">Active Status</h2>
-        <p class="text-2xl font-bold text-green-400">Online!</p>
+    <div class="p-6 rounded mt-6 w-72 h-72 mx-auto">
+        <Pie :data="chartData" :options="chartOptions" />
       </div>
 
-      <div class="bg-zinc-900 p-6 rounded-2xl">
-        <h2 class="text-zinc-400 mb-2">Storage</h2>
-        <p class="text-2xl font-bold text-yellow-400">Running!</p>
-      </div>
+     <div class="mt-10">
+  <h2 class="text-2xl font-bold mb-4">
+    Users
+  </h2>
+
+  <div class="overflow-x-auto bg-white rounded shadow">
+    <table class="w-full">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="p-3 text-left">ID</th>
+          <th class="p-3 text-left">Name</th>
+          <th class="p-3 text-left">Email</th>
+          <th class="p-3 text-left">Status</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr
+          v-for="user in userStore.users"
+          :key="user.id"
+          class="border-t hover:bg-gray-50"
+        >
+          <td class="p-3">
+            {{ user.id }}
+          </td>
+
+          <td class="p-3">
+            {{ user.firstName }}
+            {{ user.lastName }}
+          </td>
+
+          <td class="p-3">
+            {{ user.email }}
+          </td>
+
+          <td class="p-3">
+            <span
+              class="font-semibold"
+              :class="
+                user.active
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              "
+            >
+              {{ user.active ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
     </div>
-
-    <!-- User Table -->
-    <div class="bg-zinc-900 rounded-2xl overflow-hidden">
-      <table class="w-full text-left">
-
-        <thead class="bg-zinc-800">
-          <tr>
-            <th class="p-4">#</th>
-            <th class="p-4">Username</th>
-            <th class="p-4">Password</th>
-            <th class="p-4"></th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr
-            v-for="(user, index) in users"
-            :key="index"
-            class="border-t border-zinc-800"
-          >
-            <td class="p-4">{{ index + 1 }}</td>
-
-            <td class="p-4 text-blue-400 font-bold">
-              {{ user.username }}
-            </td>
-
-            <td class="p-4">*******</td>
-
-            <td class="p-4">
-              <button
-                @click="deleteUser(index)"
-                class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded-lg transition"
-              >
-                Delete
-              </button>
-            </td>
-          </tr>
-        </tbody>
-
-      </table>
-    </div>
-
-    <!-- Back Button -->
-    <NuxtLink
-      to="/login"
-      class="inline-block mt-8 bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-xl font-bold transition"
-    >
-      Back To Login
-    </NuxtLink>
-
   </div>
 </template>

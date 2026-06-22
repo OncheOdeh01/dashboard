@@ -1,61 +1,64 @@
 <script setup>
-import { ref } from 'vue'
-
-const username = ref('')
+const email = ref('')
 const password = ref('')
 
 const login = () => {
-  if (!username.value || !password.value) {
-    alert('Please enter both username and password')
-    return
-  }
-
-  const newUser = {
-    username: username.value,
-    password: password.value
-  }
-
-  const users =
-    JSON.parse(localStorage.getItem('users')) || []
-
-  users.push(newUser)
-
-  localStorage.setItem('users', JSON.stringify(users))
+  console.log(email.value)
+  console.log(password.value)
 
   navigateTo('/dashboard')
 }
+
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center">
+  
+  <div class="min-h-screen bg-gray-100 flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
 
-    <div class=" p-8 bg-black rounded-2xl w-87.5">
-
-      <h1 class="text-white text-3xl font-bold mb-6 text-center">
-        Welcome 
+      <h1 class="text-4xl text-center font-serif mb-8 ">
+        login
       </h1>
 
-      <input
-        v-model="username"
-        placeholder="Username"
-        class="w-full p-3 mb-4 rounded bg-green-400 text-white"
-      />
+      <form @submit.prevent="login">
 
-      <input
+       <div class="mb-4">
+        <label class="block mb-2">
+          Email
+        </label>
+
+        <input
+        v-model="email"
+        type="email"
+        class="w-full border rounded-md p-2">
+       </div>
+
+       <div class="mb-6">
+        <label class="block mb-2">
+          Password
+        </label>
+
+         <input
         v-model="password"
         type="password"
-        placeholder="Password"
-        class="w-full p-3 mb-6 rounded bg-green-400 text-white"
-      />
+        class="w-full border rounded-md p-2">
+       </div>
 
-      <button
-        @click="login"
-        class="w-full bg-blue-500 hover:bg-blue-600 p-3 rounded text-white font-bold"
-      >
-        Login
-      </button>
+       <button class="w-full bg-blue-600 text-white py-2 rounded">
+        login
+       </button>
+
+       <NuxtLink
+        to="/"
+          class="text-blue-600 hover:underline mt-6 inline-block"
+          >
+          ← Back to Home
+          </NuxtLink>
+
+
+      </form>
 
     </div>
-
-  </div>
+    </div>
+  
 </template>
